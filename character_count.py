@@ -46,8 +46,9 @@ def load_settings() -> Dict[str, Any]:
 
 def enabled_for_view(view: Optional[sublime.View]) -> bool:
     if view and not view.is_scratch():
-        if view.settings().get("character_count_enabled", False) is True:
-            return True
+        enabled = view.settings().get("character_count_enabled")
+        if isinstance(enabled, bool):
+            return enabled is True
 
         settings = load_settings()
         if settings["character_count_enabled"] is False:
