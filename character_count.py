@@ -1,9 +1,9 @@
 from os.path import splitext
 
-from plugin.typing import Any
-from plugin.typing import Dict
-from plugin.typing import Optional
-from plugin.typing import Set  # noqa
+from .plugin.typing import Any
+from .plugin.typing import Dict
+from .plugin.typing import Optional
+from .plugin.typing import Set  # noqa
 
 import sublime
 import sublime_plugin
