@@ -1,0 +1,10 @@
+[
+    {
+        "caption": "Character Count: Disable on this file",
+        "command": "character_count_disable"
+    },
+    {
+        "caption": "Character Count: Enable on this file",
+        "command": "character_count_enable"
+    }
+]

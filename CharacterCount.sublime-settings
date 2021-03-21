@@ -1,0 +1,5 @@
+{
+	"character_count_enabled": true,
+
+	"character_count_file_exts": [".go"]
+}
