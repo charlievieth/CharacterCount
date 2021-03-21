@@ -1,8 +1,9 @@
 from os.path import splitext
 
-from .plugin.typing import Any
-from .plugin.typing import Dict
-from .plugin.typing import Set  # noqa
+from plugin.typing import Any
+from plugin.typing import Dict
+from plugin.typing import Optional
+from plugin.typing import Set  # noqa
 
 import sublime
 import sublime_plugin
@@ -21,7 +22,7 @@ DISABLED_FILE_NAMES = set()  # type: Set[str]
 settings = {}  # type: Dict[str, Any]
 
 
-def on_settings_changed():
+def on_settings_changed() -> None:
     global settings
     current = sublime.load_settings("CharacterCount.sublime-settings")
     if current:
@@ -31,9 +32,10 @@ def on_settings_changed():
         settings["character_count_enabled"] = current.get("character_count_enabled", False)
 
         exts = current.get("character_count_file_exts", [])
-        settings["character_count_file_exts"] = set(
-            [x if x.startswith('.') else '.' + x for x in exts]
-        )
+        if exts and isinstance(exts, list):
+            settings["character_count_file_exts"] = set(
+                [x if x.startswith('.') else '.' + x for x in exts]
+            )
 
 
 def load_settings() -> Dict[str, Any]:
@@ -42,7 +44,7 @@ def load_settings() -> Dict[str, Any]:
     return settings
 
 
-def enabled_for_view(view: sublime.View) -> bool:
+def enabled_for_view(view: Optional[sublime.View]) -> bool:
     if view and not view.is_scratch():
         if view.settings().get("character_count_enabled", False) is True:
             return True
@@ -54,7 +56,7 @@ def enabled_for_view(view: sublime.View) -> bool:
         file_name = view.file_name()
         if file_name:
             return splitext(file_name)[1] in settings.get(
-                "character_count_file_exts",
+                "character_count_file_exts", set(),
             )
     return False
 
