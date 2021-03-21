@@ -1,5 +1,8 @@
 {
+	// Set to false to disable CharacterCount globally.
 	"character_count_enabled": true,
 
+	// List of file extensions that CharacterCount is enabled
+	// for by default.
 	"character_count_file_exts": [".go"]
 }
