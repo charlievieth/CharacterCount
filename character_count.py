@@ -55,6 +55,8 @@ def enabled_for_view(view: Optional[sublime.View]) -> bool:
 
         file_name = view.file_name()
         if file_name:
+            if file_name in DISABLED_FILE_NAMES:
+                return False
             return splitext(file_name)[1] in settings.get(
                 "character_count_file_exts", set(),
             )
