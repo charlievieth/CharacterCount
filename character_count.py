@@ -1,5 +1,6 @@
 from os.path import splitext
 
+from .plugin.logger import load_logger
 from .plugin.typing import Any
 from .plugin.typing import Dict
 from .plugin.typing import Optional
@@ -19,29 +20,42 @@ STATUS_KEY = '~last'
 
 DISABLED_FILE_NAMES = set()  # type: Set[str]
 
-settings = {}  # type: Dict[str, Any]
+# Global logger
+log = load_logger("CC")
+
+# Global settings
+_settings = {}  # type: Dict[str, Any]
 
 
 def on_settings_changed() -> None:
-    global settings
-    current = sublime.load_settings("CharacterCount.sublime-settings")
+    global _settings
+
+    try:
+        current = sublime.load_settings("CharacterCount.sublime-settings")
+    except AttributeError:
+        # This sometimes happen if we were unloaded
+        log.exception('loading Sublime settings')
+        return
+
     if current:
         current.clear_on_change("CharacterCount")
         current.add_on_change("CharacterCount", on_settings_changed)
 
-        settings["character_count_enabled"] = current.get("character_count_enabled", False)
+        enabled = current.get("character_count_enabled", False)
+        if isinstance(enabled, bool):
+            _settings["character_count_enabled"] = enabled
 
         exts = current.get("character_count_file_exts", [])
         if exts and isinstance(exts, list):
-            settings["character_count_file_exts"] = set(
+            _settings["character_count_file_exts"] = set(
                 [x if x.startswith('.') else '.' + x for x in exts]
             )
 
 
 def load_settings() -> Dict[str, Any]:
-    if not settings:
+    if not _settings:
         on_settings_changed()
-    return settings
+    return _settings
 
 
 def enabled_for_view(view: Optional[sublime.View]) -> bool:
@@ -51,7 +65,7 @@ def enabled_for_view(view: Optional[sublime.View]) -> bool:
             return enabled is True
 
         settings = load_settings()
-        if settings["character_count_enabled"] is False:
+        if settings.get("character_count_enabled") is False:
             return False
 
         file_name = view.file_name()
@@ -116,5 +130,17 @@ class CharacterCountListener(sublime_plugin.EventListener):
                     size = len(src[:pt].encode("utf-8"))
                 text = 'Pos: ' + str(size)
         except Exception:
-            pass
+            log.exception('calculating offset')
+
         view.set_status(STATUS_KEY, text)
+
+
+def plugin_unloaded() -> None:
+    log.info('unloading plugin')
+    DISABLED_FILE_NAMES.clear()
+    for w in sublime.windows():
+        for v in w.views():
+            try:
+                v.erase_status(STATUS_KEY)
+            except Exception:
+                log.exception('erasing status')
