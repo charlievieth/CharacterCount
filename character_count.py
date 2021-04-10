@@ -129,8 +129,11 @@ class CharacterCountListener(sublime_plugin.EventListener):
                 else:
                     size = len(src[:pt].encode("utf-8"))
                 text = 'Pos: ' + str(size)
-        except Exception:
-            log.exception('calculating offset')
+        except IndexError as e:
+            # This happens when the file is closed before this can run
+            log.warning("index error: {}".format(e))
+        except Exception as e:
+            log.exception("calculating offset: {}".format(e))
 
         view.set_status(STATUS_KEY, text)
 
