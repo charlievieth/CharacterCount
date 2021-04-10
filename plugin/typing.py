@@ -29,18 +29,15 @@ else:
     def cast(typ, val):  # type: ignore
         return val
 
-    def _make_type(name: str) -> '_TypeMeta':
+    def _make_type(name: str) -> "_TypeMeta":
         return _TypeMeta(name, (Type,), {})  # type: ignore
 
     class _TypeMeta(type):
-        def __getitem__(self, args: 'Any') -> 'Any':
+        def __getitem__(self, args: "Any") -> "Any":
             if not isinstance(args, tuple):
                 args = (args,)
 
-            name = '{}[{}]'.format(
-                str(self),
-                ', '.join(map(str, args))
-            )
+            name = "{}[{}]".format(str(self), ", ".join(map(str, args)))
             return _make_type(name)
 
         def __str__(self) -> str:

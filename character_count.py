@@ -11,12 +11,12 @@ import sublime_plugin
 
 try:
     # isascii() was added in 3.7 and ST4 uses 3.8
-    ''.isascii()
+    "".isascii()
     HAS_ISASCII = True
 except AttributeError:
     HAS_ISASCII = False
 
-STATUS_KEY = '~last'
+STATUS_KEY = "~last"
 
 DISABLED_FILE_NAMES = set()  # type: Set[str]
 
@@ -34,7 +34,7 @@ def on_settings_changed() -> None:
         current = sublime.load_settings("CharacterCount.sublime-settings")
     except AttributeError:
         # This sometimes happen if we were unloaded
-        log.exception('loading Sublime settings')
+        log.exception("loading Sublime settings")
         return
 
     if current:
@@ -48,7 +48,7 @@ def on_settings_changed() -> None:
         exts = current.get("character_count_file_exts", [])
         if exts and isinstance(exts, list):
             _settings["character_count_file_exts"] = set(
-                [x if x.startswith('.') else '.' + x for x in exts]
+                [x if x.startswith(".") else "." + x for x in exts]
             )
 
 
@@ -73,7 +73,8 @@ def enabled_for_view(view: Optional[sublime.View]) -> bool:
             if file_name in DISABLED_FILE_NAMES:
                 return False
             return splitext(file_name)[1] in settings.get(
-                "character_count_file_exts", set(),
+                "character_count_file_exts",
+                set(),
             )
     return False
 
@@ -117,7 +118,7 @@ class CharacterCountListener(sublime_plugin.EventListener):
             view.erase_status(STATUS_KEY)
             return
 
-        text = ''
+        text = ""
         try:
             sel = view.sel()
             if sel and len(sel) == 1:
@@ -128,7 +129,7 @@ class CharacterCountListener(sublime_plugin.EventListener):
                     size = int(pt)
                 else:
                     size = len(src[:pt].encode("utf-8"))
-                text = 'Pos: ' + str(size)
+                text = "Pos: " + str(size)
         except IndexError as e:
             # This happens when the file is closed before this can run
             log.warning("index error: {}".format(e))
@@ -139,11 +140,11 @@ class CharacterCountListener(sublime_plugin.EventListener):
 
 
 def plugin_unloaded() -> None:
-    log.info('unloading plugin')
+    log.info("unloading plugin")
     DISABLED_FILE_NAMES.clear()
     for w in sublime.windows():
         for v in w.views():
             try:
                 v.erase_status(STATUS_KEY)
             except Exception:
-                log.exception('erasing status')
+                log.exception("erasing status")
