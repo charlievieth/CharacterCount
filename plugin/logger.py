@@ -2,16 +2,23 @@ import logging
 import sys
 
 
-def load_logger(name="CC") -> logging.Logger:
-    ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.INFO)
-    formatter_default = logging.Formatter(
-        "[%(name)s:%(levelname)s]:[%(filename)s:%(lineno)d]: %(message)s",
-    )
-    ch.setFormatter(formatter_default)
-    log = logging.getLogger(name)
-    log.setLevel(logging.DEBUG)
-    log.propagate = False
-    if not log.hasHandlers():
-        log.addHandler(ch)
-    return log
+NAME = "CharacterCount"
+
+
+_logger_initialized = False
+
+
+def init_logger(level: int = logging.INFO) -> None:
+    global _logger_initialized
+    if not _logger_initialized:
+        logging.basicConfig(
+            level=level,
+            format="[%(name)s:%(levelname)s] [%(filename)s:%(lineno)d]: %(message)s",
+            handlers=[logging.StreamHandler(sys.stdout)],
+        )
+        _logger_initialized = True
+
+
+def get_logger(name: str = NAME, level: int = logging.INFO) -> logging.Logger:
+    init_logger()
+    return logging.getLogger(name)
