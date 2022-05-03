@@ -6,5 +6,15 @@
     {
         "caption": "Character Count: Enable on this file",
         "command": "character_count_enable"
+    },
+    {
+        "caption": "Character Count: Copy offset to clipboard",
+        "command": "character_count_copy_offset",
+        "args": {"include_filename": false}
+    },
+    {
+        "caption": "Character Count: Copy file offset to clipboard",
+        "command": "character_count_copy_offset",
+        "args": {"include_filename": true}
     }
 ]

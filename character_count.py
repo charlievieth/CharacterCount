@@ -1,3 +1,5 @@
+from typing import Optional
+import shlex
 from .plugin.logger import get_logger
 from .plugin.settings import Settings
 
@@ -47,6 +49,41 @@ class CharacterCountEnable(sublime_plugin.WindowCommand):
         return not settings.is_enabled_for_view(self.window.active_view())
 
 
+def view_point_offset(view: sublime.View) -> Optional[int]:
+    try:
+        sel = view.sel()
+        if sel and len(sel) == 1:
+            pt = sel[0].begin()
+            src = view.substr(sublime.Region(0, view.size()))
+            # Try to skip encoding is the string is ASCII
+            if HAS_ISASCII and src.isascii():
+                return int(pt)
+            else:
+                return len(src[:pt].encode("utf-8"))
+    except IndexError as e:
+        # This happens when the file is closed before this can run
+        log.warning("index error: {}".format(e))
+    except Exception as e:
+        log.exception("calculating offset: {}".format(e))
+    return None
+
+
+class CharacterCountCopyOffset(sublime_plugin.WindowCommand):
+    """ Enable character count for the current buffer """
+
+    def run(self, include_filename: bool = False) -> None:
+        view = self.window.active_view()
+        if view:
+            offset = view_point_offset(view)
+            if offset is not None:
+                if include_filename and view.file_name():
+                    cb = shlex.quote("{}:#{}".format(view.file_name(), offset))
+                else:
+                    cb = str(offset)
+                log.info("setting clipboard contents to: {}".format(cb))
+                sublime.set_clipboard(cb)
+
+
 class CharacterCountListener(sublime_plugin.EventListener):
     """ Reports the character offset of the cursor. """
 
@@ -55,25 +92,18 @@ class CharacterCountListener(sublime_plugin.EventListener):
             view.erase_status(STATUS_KEY)
             return
 
-        text = ""
+        status = ""
         try:
-            sel = view.sel()
-            if sel and len(sel) == 1:
-                pt = sel[0].begin()
-                src = view.substr(sublime.Region(0, view.size()))
-                # Try to skip encoding is the string is ASCII
-                if HAS_ISASCII and src.isascii():
-                    size = int(pt)
-                else:
-                    size = len(src[:pt].encode("utf-8"))
-                text = "Pos: " + str(size)
+            offset = view_point_offset(view)
+            if offset is not None:
+                status = "Pos: " + str(offset)
         except IndexError as e:
             # This happens when the file is closed before this can run
             log.warning("index error: {}".format(e))
         except Exception as e:
             log.exception("calculating offset: {}".format(e))
 
-        view.set_status(STATUS_KEY, text)
+        view.set_status(STATUS_KEY, status)
 
 
 def plugin_loaded() -> None:
